@@ -9,7 +9,7 @@ The Claude Code Integration Plugin bridges the gap between Claude Code and OpenC
 - **Seamless Command Translation**: Use Claude Code slash commands as OpenCode commands
 - **Agent Integration**: Access specialized Claude Code agents as OpenCode agents
 - **Skills as Tools**: Execute Claude Code skills through OpenCode's tool system
-- **Configuration Compatibility**: Maintain both `.claude/` and `.opencode/` directories
+- **Configuration Compatibility**: All configurations stored in `.opencode/plugin/` directory
 
 ## Installation
 
@@ -18,14 +18,12 @@ The integration is already set up in this repository:
 ```
 .opencode/
 ├── plugin/
-│   └── claude-code-integration.ts    # The integration plugin
+│   ├── claude-code-integration.ts    # The integration plugin
+│   ├── commands/                      # Claude Code commands
+│   ├── agents/                        # Claude Code agents
+│   ├── skills/                        # Claude Code skills
+│   └── README.md                      # Detailed documentation
 └── opencode.jsonc                     # Configuration file
-
-.claude/
-├── commands/                          # Claude Code commands
-├── agents/                            # Claude Code agents
-├── skills/                            # Claude Code skills
-└── README.md                          # Detailed documentation
 ```
 
 ## Quick Start
@@ -127,10 +125,10 @@ opencode tui
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 
-External Claude Code Configurations:
-.claude/commands/*.md  ──┐
-.claude/agents/*.md    ──┼──► Discovered & Converted
-.claude/skills/*.ts    ──┘
+Claude Code Configurations:
+.opencode/plugin/commands/*.md  ──┐
+.opencode/plugin/agents/*.md    ──┼──► Discovered & Converted
+.opencode/plugin/skills/*.ts    ──┘
 ```
 
 ### File Organization
@@ -139,29 +137,24 @@ External Claude Code Configurations:
 Project Root
 ├── .opencode/
 │   ├── plugin/
-│   │   └── claude-code-integration.ts    # Plugin implementation
+│   │   ├── claude-code-integration.ts    # Plugin implementation
+│   │   ├── commands/                      # Slash commands
+│   │   │   ├── review-pr.md
+│   │   │   ├── refactor.md
+│   │   │   ├── explain-code.md
+│   │   │   ├── debug.md
+│   │   │   └── optimize.md
+│   │   ├── agents/                        # Specialized agents
+│   │   │   ├── code-reviewer.md
+│   │   │   ├── test-specialist.md
+│   │   │   ├── architecture-advisor.md
+│   │   │   └── security-auditor.md
+│   │   ├── skills/                        # Executable skills
+│   │   │   ├── analyze-dependencies.ts
+│   │   │   ├── code-metrics.ts
+│   │   │   └── git-insights.ts
+│   │   └── README.md                      # Claude Code docs
 │   └── opencode.jsonc                     # OpenCode configuration
-│
-├── .claude/                                # Claude Code configurations
-│   ├── commands/                          # Slash commands
-│   │   ├── review-pr.md
-│   │   ├── refactor.md
-│   │   ├── explain-code.md
-│   │   ├── debug.md
-│   │   └── optimize.md
-│   │
-│   ├── agents/                            # Specialized agents
-│   │   ├── code-reviewer.md
-│   │   ├── test-specialist.md
-│   │   ├── architecture-advisor.md
-│   │   └── security-auditor.md
-│   │
-│   ├── skills/                            # Executable skills
-│   │   ├── analyze-dependencies.ts
-│   │   ├── code-metrics.ts
-│   │   └── git-insights.ts
-│   │
-│   └── README.md                          # Claude Code docs
 │
 └── CLAUDE_CODE_INTEGRATION.md             # This file
 ```
@@ -251,7 +244,7 @@ opencode run "use claude_skill_git-insights for 30 days"
 
 ### Custom Command
 
-Create `.claude/commands/my-command.md`:
+Create `.opencode/plugin/commands/my-command.md`:
 
 ```markdown
 ---
@@ -266,7 +259,7 @@ Use ${args} for arguments.
 
 ### Custom Agent
 
-Create `.claude/agents/my-agent.md`:
+Create `.opencode/plugin/agents/my-agent.md`:
 
 ```markdown
 ---
@@ -283,7 +276,7 @@ System prompt defining agent behavior.
 
 ### Custom Skill
 
-Create `.claude/skills/my-skill.ts`:
+Create `.opencode/plugin/skills/my-skill.ts`:
 
 ```typescript
 async function mySkill(
@@ -387,7 +380,7 @@ permission:
 **Symptoms**: `/claude_command` returns "Command not found".
 
 **Solutions**:
-1. Verify markdown files exist in `.claude/commands/`
+1. Verify markdown files exist in `.opencode/plugin/commands/`
 2. Check YAML frontmatter syntax
 3. Ensure filenames use lowercase and hyphens
 4. Restart OpenCode: `Ctrl+X, Q` then restart
@@ -400,14 +393,14 @@ permission:
 1. Check TypeScript/JavaScript syntax
 2. Verify default export exists
 3. Ensure `.description` property is set
-4. Install required dependencies: `cd .claude && npm install`
+4. Install required dependencies: `cd .opencode/plugin && npm install`
 
 ### Issue: Agent Not Available
 
 **Symptoms**: Agent doesn't appear in agent list.
 
 **Solutions**:
-1. Verify file is in `.claude/agents/`
+1. Verify file is in `.opencode/plugin/agents/`
 2. Check YAML frontmatter has required fields
 3. Ensure `mode` is valid (subagent/primary/all)
 4. Check agent naming (no special characters)
@@ -564,7 +557,7 @@ config.agent[`claude_${language}-specialist`] = {
 For issues or questions:
 
 1. Check the [Troubleshooting](#troubleshooting) section
-2. Review [`.claude/README.md`](.claude/README.md)
+2. Review [`.opencode/plugin/README.md`](.opencode/plugin/README.md)
 3. Open an issue on GitHub
 4. Check OpenCode Discord community
 

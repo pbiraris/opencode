@@ -3,10 +3,10 @@
  *
  * This plugin provides seamless integration of Claude Code's agents, skills, and commands
  * into the OpenCode environment. It automatically discovers and converts Claude Code
- * configurations from `.claude/` directories into OpenCode-compatible formats.
+ * configurations from `.opencode/plugin/` subdirectories into OpenCode-compatible formats.
  *
  * Features:
- * - Converts Claude Code commands (.claude/commands/*.md) to OpenCode commands
+ * - Converts Claude Code commands (.opencode/plugin/commands/*.md) to OpenCode commands
  * - Exposes Claude Code skills as OpenCode tools
  * - Provides Claude Code agent patterns as OpenCode agents
  * - Maintains compatibility with both Claude Code and OpenCode workflows
@@ -181,7 +181,7 @@ export const ClaudeCodeIntegrationPlugin: Plugin = async (ctx) => {
 }
 
 /**
- * Discover Claude Code configurations from .claude directories
+ * Discover Claude Code configurations from plugin directory
  */
 async function discoverClaudeCode(worktree: string): Promise<ClaudeCodeConfig> {
   const config: ClaudeCodeConfig = {
@@ -190,35 +190,33 @@ async function discoverClaudeCode(worktree: string): Promise<ClaudeCodeConfig> {
     agents: new Map(),
   }
 
-  // Search for .claude directories
-  const claudeDirs = await findClaudeDirs(worktree)
+  // Get plugin directory (where this file is located)
+  const pluginDir = path.join(worktree, ".opencode", "plugin")
 
-  for (const claudeDir of claudeDirs) {
-    // Load commands from .claude/commands/
-    const commandsDir = path.join(claudeDir, "commands")
-    if (await exists(commandsDir)) {
-      const commands = await loadClaudeCommands(commandsDir)
-      for (const cmd of commands) {
-        config.commands.set(cmd.name, cmd)
-      }
+  // Load commands from .opencode/plugin/commands/
+  const commandsDir = path.join(pluginDir, "commands")
+  if (await exists(commandsDir)) {
+    const commands = await loadClaudeCommands(commandsDir)
+    for (const cmd of commands) {
+      config.commands.set(cmd.name, cmd)
     }
+  }
 
-    // Load skills (if defined in .claude/skills/)
-    const skillsDir = path.join(claudeDir, "skills")
-    if (await exists(skillsDir)) {
-      const skills = await loadClaudeSkills(skillsDir)
-      for (const skill of skills) {
-        config.skills.set(skill.name, skill)
-      }
+  // Load skills from .opencode/plugin/skills/
+  const skillsDir = path.join(pluginDir, "skills")
+  if (await exists(skillsDir)) {
+    const skills = await loadClaudeSkills(skillsDir)
+    for (const skill of skills) {
+      config.skills.set(skill.name, skill)
     }
+  }
 
-    // Load agents (if defined in .claude/agents/)
-    const agentsDir = path.join(claudeDir, "agents")
-    if (await exists(agentsDir)) {
-      const agents = await loadClaudeAgents(agentsDir)
-      for (const agent of agents) {
-        config.agents.set(agent.name, agent)
-      }
+  // Load agents from .opencode/plugin/agents/
+  const agentsDir = path.join(pluginDir, "agents")
+  if (await exists(agentsDir)) {
+    const agents = await loadClaudeAgents(agentsDir)
+    for (const agent of agents) {
+      config.agents.set(agent.name, agent)
     }
   }
 
@@ -229,26 +227,6 @@ async function discoverClaudeCode(worktree: string): Promise<ClaudeCodeConfig> {
   registerBuiltInAgents(config.agents)
 
   return config
-}
-
-/**
- * Find all .claude directories in the worktree
- */
-async function findClaudeDirs(worktree: string): Promise<string[]> {
-  const dirs: string[] = []
-  const claudeDir = path.join(worktree, ".claude")
-
-  if (await exists(claudeDir)) {
-    dirs.push(claudeDir)
-  }
-
-  // Also check home directory
-  const homeClaudeDir = path.join(process.env.HOME || "", ".claude")
-  if (await exists(homeClaudeDir)) {
-    dirs.push(homeClaudeDir)
-  }
-
-  return dirs
 }
 
 /**
