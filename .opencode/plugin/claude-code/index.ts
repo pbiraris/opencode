@@ -3,13 +3,21 @@
  *
  * This plugin provides seamless integration of Claude Code's agents, skills, and commands
  * into the OpenCode environment. It automatically discovers and converts Claude Code
- * configurations from `.opencode/plugin/` subdirectories into OpenCode-compatible formats.
+ * configurations from this plugin's subdirectories.
+ *
+ * Structure:
+ * .opencode/plugin/claude-code/
+ * ├── index.ts          # This file
+ * ├── commands/         # Claude Code commands
+ * ├── agents/           # Claude Code agents
+ * ├── skills/           # Claude Code skills
+ * └── README.md         # Documentation
  *
  * Features:
- * - Converts Claude Code commands (.opencode/plugin/commands/*.md) to OpenCode commands
+ * - Converts Claude Code commands to OpenCode commands
  * - Exposes Claude Code skills as OpenCode tools
  * - Provides Claude Code agent patterns as OpenCode agents
- * - Maintains compatibility with both Claude Code and OpenCode workflows
+ * - Self-contained: all files relative to plugin directory
  *
  * @see https://docs.claude.com/en/docs/claude-code
  * @see https://opencode.ai/docs
@@ -59,8 +67,8 @@ export const ClaudeCodeIntegrationPlugin: Plugin = async (ctx) => {
 
   console.log("🔌 Initializing Claude Code Integration Plugin...")
 
-  // Discover Claude Code configurations
-  const claudeConfig = await discoverClaudeCode(worktree)
+  // Discover Claude Code configurations from this plugin's directory
+  const claudeConfig = await discoverClaudeCode(directory)
 
   console.log(`📋 Found ${claudeConfig.commands.size} commands, ${claudeConfig.skills.size} skills, ${claudeConfig.agents.size} agents`)
 
@@ -182,18 +190,16 @@ export const ClaudeCodeIntegrationPlugin: Plugin = async (ctx) => {
 
 /**
  * Discover Claude Code configurations from plugin directory
+ * @param pluginDir - The directory where this plugin is located
  */
-async function discoverClaudeCode(worktree: string): Promise<ClaudeCodeConfig> {
+async function discoverClaudeCode(pluginDir: string): Promise<ClaudeCodeConfig> {
   const config: ClaudeCodeConfig = {
     commands: new Map(),
     skills: new Map(),
     agents: new Map(),
   }
 
-  // Get plugin directory (where this file is located)
-  const pluginDir = path.join(worktree, ".opencode", "plugin")
-
-  // Load commands from .opencode/plugin/commands/
+  // Load commands from ./commands/ (relative to plugin directory)
   const commandsDir = path.join(pluginDir, "commands")
   if (await exists(commandsDir)) {
     const commands = await loadClaudeCommands(commandsDir)
@@ -202,7 +208,7 @@ async function discoverClaudeCode(worktree: string): Promise<ClaudeCodeConfig> {
     }
   }
 
-  // Load skills from .opencode/plugin/skills/
+  // Load skills from ./skills/ (relative to plugin directory)
   const skillsDir = path.join(pluginDir, "skills")
   if (await exists(skillsDir)) {
     const skills = await loadClaudeSkills(skillsDir)
@@ -211,7 +217,7 @@ async function discoverClaudeCode(worktree: string): Promise<ClaudeCodeConfig> {
     }
   }
 
-  // Load agents from .opencode/plugin/agents/
+  // Load agents from ./agents/ (relative to plugin directory)
   const agentsDir = path.join(pluginDir, "agents")
   if (await exists(agentsDir)) {
     const agents = await loadClaudeAgents(agentsDir)

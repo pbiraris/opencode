@@ -16,8 +16,8 @@ The Claude Code Integration Plugin automatically discovers and converts Claude C
 ## Directory Structure
 
 ```
-.opencode/plugin/
-├── claude-code-integration.ts  # Main plugin file
+.opencode/plugin/claude-code/
+├── index.ts           # Main plugin file
 ├── commands/          # Slash commands (converted to OpenCode commands)
 │   ├── review-pr.md
 │   ├── refactor.md
@@ -35,6 +35,26 @@ The Claude Code Integration Plugin automatically discovers and converts Claude C
 │   └── git-insights.ts
 └── README.md         # This file
 ```
+
+## Multi-Plugin Support
+
+This plugin is self-contained in its own subdirectory, allowing multiple plugins to coexist:
+
+```
+.opencode/plugin/
+├── claude-code/           # This plugin
+│   ├── index.ts
+│   ├── commands/
+│   ├── agents/
+│   └── skills/
+├── another-plugin/        # Your custom plugin
+│   ├── index.ts
+│   └── ...
+└── third-plugin/          # Another plugin
+    └── ...
+```
+
+Each plugin loads only its own files, preventing conflicts.
 
 ## Usage
 
@@ -108,7 +128,7 @@ opencode run "list all claude skills"
 
 ### Creating a Command
 
-Create a markdown file in `.opencode/plugin/commands/`:
+Create a markdown file in `.opencode/plugin/claude-code/commands/`:
 
 ```markdown
 ---
@@ -123,7 +143,7 @@ You can use ${args} to reference command arguments.
 
 ### Creating an Agent
 
-Create a markdown file in `.opencode/plugin/agents/`:
+Create a markdown file in `.opencode/plugin/claude-code/agents/`:
 
 ```markdown
 ---
@@ -146,7 +166,7 @@ Define the agent's:
 
 ### Creating a Skill
 
-Create a TypeScript file in `.opencode/plugin/skills/`:
+Create a TypeScript file in `.opencode/plugin/claude-code/skills/`:
 
 ```typescript
 /**
@@ -185,21 +205,21 @@ To enable/disable the plugin, edit `.opencode/opencode.jsonc`:
 
 ### Command Conversion
 
-Claude Code commands (`.opencode/plugin/commands/*.md`) are automatically converted to OpenCode commands with the prefix `claude_`:
+Claude Code commands (`./commands/*.md`) are automatically converted to OpenCode commands with the prefix `claude_`:
 
-- `.opencode/plugin/commands/review-pr.md` → `/claude_review-pr`
+- `.opencode/plugin/claude-code/commands/review-pr.md` → `/claude_review-pr`
 
 ### Agent Conversion
 
-Claude Code agents (`.opencode/plugin/agents/*.md`) are converted to OpenCode agents with the prefix `claude_`:
+Claude Code agents (`./agents/*.md`) are converted to OpenCode agents with the prefix `claude_`:
 
-- `.opencode/plugin/agents/code-reviewer.md` → `claude_code-reviewer` agent
+- `.opencode/plugin/claude-code/agents/code-reviewer.md` → `claude_code-reviewer` agent
 
 ### Skill Conversion
 
-Claude Code skills (`.opencode/plugin/skills/*.ts`) are converted to OpenCode tools with the prefix `claude_skill_`:
+Claude Code skills (`./skills/*.ts`) are converted to OpenCode tools with the prefix `claude_skill_`:
 
-- `.opencode/plugin/skills/git-insights.ts` → `claude_skill_git-insights` tool
+- `.opencode/plugin/claude-code/skills/git-insights.ts` → `claude_skill_git-insights` tool
 
 ## Built-in Skills (Placeholders)
 
@@ -212,7 +232,7 @@ The plugin includes placeholder implementations for common Claude Code skills:
 To fully implement these, install the required dependencies:
 
 ```bash
-cd .opencode/plugin
+cd .opencode/plugin/claude-code
 npm install pdf-parse xlsx sharp
 ```
 
@@ -221,12 +241,12 @@ npm install pdf-parse xlsx sharp
 ### Plugin Not Loading
 
 1. Check that the plugin path is correct in `.opencode/opencode.jsonc`
-2. Ensure the plugin file has no syntax errors: `bun check .opencode/plugin/claude-code-integration.ts`
+2. Ensure the plugin file has no syntax errors: `bun check .opencode/plugin/claude-code/index.ts`
 3. Check OpenCode logs for error messages
 
 ### Commands Not Appearing
 
-1. Ensure command files are in `.opencode/plugin/commands/`
+1. Ensure command files are in `.opencode/plugin/claude-code/commands/`
 2. Verify YAML frontmatter is valid
 3. Restart OpenCode to reload configuration
 
@@ -235,11 +255,11 @@ npm install pdf-parse xlsx sharp
 1. Check TypeScript syntax in skill files
 2. Ensure skills export a default function
 3. Add `.description` property to the function
-4. Install any required npm packages in `.opencode/plugin/`
+4. Install any required npm packages: `cd .opencode/plugin/claude-code && npm install`
 
 ### Agent Not Available
 
-1. Verify agent markdown file is in `.opencode/plugin/agents/`
+1. Verify agent markdown file is in `.opencode/plugin/claude-code/agents/`
 2. Check YAML frontmatter for required fields
 3. Ensure `mode` is set to "subagent" or "primary"
 

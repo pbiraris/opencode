@@ -3,7 +3,11 @@
   "plugin": [
     // Claude Code Integration Plugin
     // This plugin enables seamless integration of Claude Code's agents, skills, and commands
-    "file:///home/user/opencode/.opencode/plugin/claude-code-integration.ts"
+    // Each plugin is self-contained in its own subdirectory
+    "file:///home/user/opencode/.opencode/plugin/claude-code/index.ts"
+
+    // To add more plugins, add them here:
+    // "file:///home/user/opencode/.opencode/plugin/another-plugin/index.ts"
   ],
   "agent": {
     // Default agents are already included: build, plan, general
