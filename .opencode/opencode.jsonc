@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    // Claude Code Integration Plugin
+    // This plugin enables seamless integration of Claude Code's agents, skills, and commands
+    "file:///home/user/opencode/.opencode/plugin/claude-code-integration.ts"
+  ],
+  "agent": {
+    // Default agents are already included: build, plan, general
+    // Claude Code agents will be automatically added with the "claude_" prefix
+    // For example: claude_code-reviewer, claude_test-specialist, etc.
+  },
+  "command": {
+    // Claude Code commands will be automatically added with the "claude_" prefix
+    // For example: claude_review-pr, claude_debug, etc.
+  },
+  "tools": {
+    // All tools are enabled by default
+    // Claude Code skills will be registered as tools with the "claude_skill_" prefix
+  },
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "*": "allow"
+    },
+    "webfetch": "allow"
+  }
+}
