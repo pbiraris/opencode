@@ -47,8 +47,9 @@ interface ClaudeCommand {
 
 interface ClaudeSkill {
   name: string
-  description: string
-  execute: (args: any, context: any) => Promise<string>
+  description?: string
+  content: string
+  filePath: string
 }
 
 interface ClaudeAgent {
@@ -73,18 +74,23 @@ export const ClaudeCodeIntegrationPlugin: Plugin = async (ctx) => {
   console.log(`📋 Found ${claudeConfig.commands.size} commands, ${claudeConfig.skills.size} skills, ${claudeConfig.agents.size} agents`)
 
   // Convert skills to OpenCode tools
+  // Skills are markdown-based instructions that guide the AI
   const tools: Record<string, any> = {}
 
   for (const [name, skill] of claudeConfig.skills) {
     tools[`claude_skill_${name}`] = tool({
-      description: skill.description,
+      description: skill.description || `Claude Code skill: ${name}`,
       args: {
-        // Skills can accept arbitrary parameters
-        params: tool.schema.string().optional().describe("Parameters for the skill (JSON string)"),
+        // Skills can accept arbitrary parameters as context
+        params: tool.schema.string().optional().describe("Additional parameters or context"),
       },
       async execute(args, context) {
-        const params = args.params ? JSON.parse(args.params) : {}
-        return await skill.execute(params, context)
+        // Return the skill content as instructions for the AI to follow
+        let instructions = skill.content
+        if (args.params) {
+          instructions = `${instructions}\n\nContext: ${args.params}`
+        }
+        return instructions
       },
     })
   }
@@ -273,33 +279,31 @@ async function loadClaudeCommands(commandsDir: string): Promise<ClaudeCommand[]>
 }
 
 /**
- * Load Claude Code skills from TypeScript/JavaScript files
+ * Load Claude Code skills from markdown files
  */
 async function loadClaudeSkills(skillsDir: string): Promise<ClaudeSkill[]> {
   const skills: ClaudeSkill[] = []
 
   try {
-    const files = await fs.readdir(skillsDir)
+    const files = await fs.readdir(skillsDir, { recursive: true })
 
     for (const file of files) {
-      if (file.endsWith(".ts") || file.endsWith(".js")) {
+      if (file.endsWith(".md")) {
         const filePath = path.join(skillsDir, file)
+        const content = await fs.readFile(filePath, "utf-8")
 
         try {
-          // Dynamically import the skill
-          const skillModule = await import(filePath)
-          const skill = skillModule.default || skillModule
+          const parsed = matter(content)
+          const name = path.basename(file, ".md")
 
-          if (typeof skill === "function") {
-            const name = path.basename(file, path.extname(file))
-            skills.push({
-              name,
-              description: skill.description || `Claude Code skill: ${name}`,
-              execute: skill,
-            })
-          }
+          skills.push({
+            name,
+            description: parsed.data.description,
+            content: parsed.content.trim(),
+            filePath,
+          })
         } catch (err) {
-          console.warn(`Failed to load skill: ${filePath}`, err)
+          console.warn(`Failed to parse skill file: ${filePath}`, err)
         }
       }
     }

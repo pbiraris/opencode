@@ -30,9 +30,9 @@ The Claude Code Integration Plugin automatically discovers and converts Claude C
 │   ├── architecture-advisor.md
 │   └── security-auditor.md
 ├── skills/           # Reusable capabilities (converted to OpenCode tools)
-│   ├── analyze-dependencies.ts
-│   ├── code-metrics.ts
-│   └── git-insights.ts
+│   ├── analyze-dependencies.md
+│   ├── code-metrics.md
+│   └── git-insights.md
 └── README.md         # This file
 ```
 
@@ -166,25 +166,29 @@ Define the agent's:
 
 ### Creating a Skill
 
-Create a TypeScript file in `.opencode/plugin/claude-code/skills/`:
+Create a markdown file in `.opencode/plugin/claude-code/skills/`:
 
-```typescript
-/**
- * Skill Description
- */
+```markdown
+---
+description: Brief description of what this skill does
+---
 
-async function mySkill(
-  args: { /* your parameters */ },
-  context: { sessionID: string; agent: string }
-): Promise<string> {
-  // Your skill implementation
-  return "Skill result"
-}
+Instructions for what the AI should do when this skill is invoked.
 
-// Required: Skill description
-mySkill.description = "What this skill does"
+## Steps
 
-export default mySkill
+1. [First step]
+2. [Second step]
+3. [Third step]
+
+## Expected Output
+
+[Describe the format and content of the output]
+
+## Notes
+
+- [Important notes]
+- [Best practices]
 ```
 
 ## Configuration
@@ -217,9 +221,9 @@ Claude Code agents (`./agents/*.md`) are converted to OpenCode agents with the p
 
 ### Skill Conversion
 
-Claude Code skills (`./skills/*.ts`) are converted to OpenCode tools with the prefix `claude_skill_`:
+Claude Code skills (`./skills/*.md`) are converted to OpenCode tools with the prefix `claude_skill_`:
 
-- `.opencode/plugin/claude-code/skills/git-insights.ts` → `claude_skill_git-insights` tool
+- `.opencode/plugin/claude-code/skills/git-insights.md` → `claude_skill_git-insights` tool
 
 ## Built-in Skills (Placeholders)
 

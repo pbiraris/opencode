@@ -184,40 +184,32 @@ EOF
 ### 1. Create Your Skill File
 
 ```bash
-touch .opencode/plugin/claude-code/skills/my-skill.ts
+touch .opencode/plugin/claude-code/skills/my-skill.md
 ```
 
 ### 2. Write Your Skill
 
-```typescript
-/**
- * Description of what your skill does
- */
+```markdown
+---
+description: Brief description of what this skill does
+---
 
-async function mySkill(
-  args: {
-    // Your parameters
-    param1: string
-    param2?: number
-  },
-  context: {
-    sessionID: string
-    messageID: string
-    agent: string
-    abort: AbortSignal
-  }
-): Promise<string> {
-  // Your implementation
-  const result = `Processing: ${args.param1}`
+Instructions for what the AI should do when this skill is invoked.
 
-  return result
-}
+## Steps
 
-// REQUIRED: Skill description
-mySkill.description = "What this skill does"
+1. [First step]
+2. [Second step]
+3. [Third step]
 
-// REQUIRED: Export as default
-export default mySkill
+## Expected Output
+
+[Describe the format and content of the output]
+
+## Notes
+
+- [Any important notes]
+- [Best practices]
 ```
 
 ### 3. Restart OpenCode
@@ -230,53 +222,64 @@ Agents will automatically invoke your skill when needed, or you can call it:
 opencode run "use claude_skill_my-skill"
 ```
 
-**Example**: Let's add a "check dependencies" skill:
+**Example**: Let's add a "performance audit" skill:
 
 ```bash
-cat > .opencode/plugin/claude-code/skills/check-updates.ts << 'EOF'
-/**
- * Check for outdated npm packages
- */
+cat > .opencode/plugin/claude-code/skills/performance-audit.md << 'EOF'
+---
+description: Audit code for performance issues and bottlenecks
+---
 
-import { exec } from "child_process"
-import { promisify } from "util"
+Perform a comprehensive performance audit of the codebase.
 
-const execAsync = promisify(exec)
+## Analysis Steps
 
-async function checkUpdates(
-  args: { directory?: string },
-  context: { sessionID: string; agent: string }
-): Promise<string> {
-  const dir = args.directory || process.cwd()
+1. **Identify Performance Hotspots**
+   - Look for nested loops (O(n²) or worse)
+   - Find repeated calculations
+   - Identify unnecessary re-renders (React)
+   - Check for memory leaks
 
-  try {
-    const { stdout } = await execAsync("npm outdated --json", { cwd: dir })
+2. **Database Query Analysis**
+   - Look for N+1 queries
+   - Missing database indexes
+   - Large data fetches
+   - Inefficient joins
 
-    if (!stdout) {
-      return "✅ All packages are up to date!"
-    }
+3. **Resource Usage**
+   - Large file operations
+   - Blocking synchronous operations
+   - Excessive network requests
+   - Heavy computations in UI thread
 
-    const outdated = JSON.parse(stdout)
-    let report = "# Outdated Packages\n\n"
+4. **Caching Opportunities**
+   - Repeated API calls
+   - Expensive calculations
+   - Static data
+   - Database queries
 
-    for (const [pkg, info] of Object.entries(outdated)) {
-      const data = info as any
-      report += `- **${pkg}**: ${data.current} → ${data.latest}\n`
-    }
+## Output Format
 
-    return report
-  } catch (error) {
-    return `Error checking updates: ${error instanceof Error ? error.message : String(error)}`
-  }
-}
+```markdown
+# Performance Audit Report
 
-checkUpdates.description = "Check for outdated npm packages"
+## Critical Issues
+1. [Issue] - [Location] - [Impact]
 
-export default checkUpdates
+## Recommendations
+1. [Specific optimization with code example]
+2. [Another recommendation]
+
+## Priority Areas
+- [Area 1]: [Why it's important]
+- [Area 2]: [Why it's important]
+```
+
+Provide specific, actionable recommendations with code examples.
 EOF
 
 # Restart OpenCode
-# Now available as: claude_skill_check-updates
+# Now available as: claude_skill_performance-audit
 ```
 
 ## Testing Your Additions
@@ -339,9 +342,9 @@ opencode run "list all claude skills"
 - **Example**: `api-expert.md` → `claude_api-expert`
 
 ### Skills
-- **Format**: `skill-name.ts` (lowercase, hyphen-separated)
+- **Format**: `skill-name.md` (lowercase, hyphen-separated)
 - **Available as**: `claude_skill_skill-name`
-- **Example**: `run-tests.ts` → `claude_skill_run-tests`
+- **Example**: `run-tests.md` → `claude_skill_run-tests`
 
 ## Common Patterns
 
@@ -390,51 +393,45 @@ tools:
 You are a read-only code analyst...
 ```
 
-### Skill with Dependencies
+### Skill with Data Analysis
 
-```typescript
-/**
- * Skill that uses external libraries
- */
+```markdown
+---
+description: Analyze API response patterns and suggest optimizations
+---
 
-// Install dependencies in the plugin directory:
-// cd .opencode/plugin/claude-code
-// npm install axios
+Analyze API responses for patterns, issues, and optimization opportunities.
 
-import axios from "axios"
+## Analysis Process
 
-async function fetchData(
-  args: { url: string },
-  context: any
-): Promise<string> {
-  try {
-    const response = await axios.get(args.url)
-    return JSON.stringify(response.data, null, 2)
-  } catch (error) {
-    return `Error: ${error}`
-  }
-}
+1. **Response Structure**
+   - Examine the JSON structure
+   - Check for consistent patterns
+   - Identify nested data
 
-fetchData.description = "Fetch data from a URL"
+2. **Performance Issues**
+   - Large payload sizes
+   - Unnecessary data
+   - N+1 query patterns
 
-export default fetchData
-```
+3. **Data Quality**
+   - Missing fields
+   - Inconsistent types
+   - Null values
 
-## Installing Skill Dependencies
+4. **Optimization Opportunities**
+   - GraphQL field selection
+   - Response compression
+   - Caching strategies
+   - Pagination improvements
 
-If your skills need npm packages:
+## Output Format
 
-```bash
-# Navigate to plugin directory
-cd .opencode/plugin/claude-code
-
-# Initialize package.json (if not exists)
-npm init -y
-
-# Install dependencies
-npm install axios cheerio date-fns
-
-# Your skills can now import these packages
+Provide a detailed analysis with:
+- Current issues identified
+- Impact assessment
+- Specific recommendations
+- Code examples for improvements
 ```
 
 ## Troubleshooting
@@ -456,11 +453,10 @@ npm install axios cheerio date-fns
 ### Skill Not Working
 
 1. Check file is in `skills/` directory
-2. Check file extension is `.ts` or `.js`
-3. Verify default export exists
-4. Verify `.description` property is set
-5. Check for TypeScript errors: `bun check .opencode/plugin/claude-code/skills/your-skill.ts`
-6. Restart OpenCode
+2. Check file extension is `.md`
+3. Verify YAML frontmatter is valid
+4. Verify `description` field is set in frontmatter
+5. Restart OpenCode
 
 ### Still Not Working?
 
@@ -490,9 +486,9 @@ Check the existing files for examples:
   - `test-specialist.md` - Testing expert agent
 
 - **Skills**: `.opencode/plugin/claude-code/skills/`
-  - `code-metrics.ts` - File system operations
-  - `git-insights.ts` - Shell command execution
-  - `analyze-dependencies.ts` - JSON parsing and analysis
+  - `code-metrics.md` - Code analysis and metrics
+  - `git-insights.md` - Repository history analysis
+  - `analyze-dependencies.md` - Dependency analysis
 
 ## Summary
 
@@ -500,9 +496,10 @@ Check the existing files for examples:
 ✅ **No Code Changes**: Plugin automatically finds new files
 ✅ **No Registration**: No need to update any lists
 ✅ **Instant Availability**: Available immediately after restart
+✅ **All Markdown**: Commands, agents, AND skills are all `.md` files
 
 **Workflow**:
-1. Add your `.md` or `.ts` file
+1. Add your `.md` file to the appropriate directory
 2. Restart OpenCode
 3. Use your command/agent/skill!
 
