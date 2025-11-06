@@ -1332,21 +1332,22 @@ export namespace Server {
       .get(
         "/mcp",
         describeRoute({
-          description: "Get MCP server status",
-          operationId: "mcp.status",
+          description: "List all MCP servers",
+          operationId: "app.mcp",
           responses: {
             200: {
-              description: "MCP server status",
+              description: "List of MCP servers",
               content: {
                 "application/json": {
-                  schema: resolver(z.record(z.string(), MCP.Status)),
+                  schema: resolver(MCP.Info.array()),
                 },
               },
             },
           },
         }),
         async (c) => {
-          return c.json(await MCP.status())
+          const mcpServers = await MCP.list()
+          return c.json(mcpServers)
         },
       )
       .get(

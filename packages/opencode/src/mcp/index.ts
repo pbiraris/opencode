@@ -52,6 +52,33 @@ export namespace MCP {
   export type Status = z.infer<typeof Status>
   type MCPClient = Awaited<ReturnType<typeof experimental_createMCPClient>>
 
+  export const Info = z
+    .object({
+      name: z.string(),
+      type: z.enum(["local", "remote"]),
+      status: Status,
+      config: z.union([
+        z.object({
+          type: z.literal("local"),
+          command: z.string().array(),
+          environment: z.record(z.string(), z.string()).optional(),
+          enabled: z.boolean().optional(),
+          timeout: z.number().optional(),
+        }),
+        z.object({
+          type: z.literal("remote"),
+          url: z.string(),
+          enabled: z.boolean().optional(),
+          headers: z.record(z.string(), z.string()).optional(),
+          timeout: z.number().optional(),
+        }),
+      ]),
+    })
+    .meta({
+      ref: "MCPInfo",
+    })
+  export type Info = z.infer<typeof Info>
+
   const state = Instance.state(
     async () => {
       const cfg = await Config.get()
@@ -235,6 +262,22 @@ export namespace MCP {
 
   export async function status() {
     return state().then((state) => state.status)
+  }
+
+  export async function list(): Promise<Info[]> {
+    const cfg = await Config.get()
+    const config = cfg.mcp ?? {}
+    const currentStatus = await status()
+
+    return Object.entries(config).map(([name, mcpConfig]) => {
+      const mcpStatus = currentStatus[name] ?? { status: "failed" as const, error: "Unknown" }
+      return {
+        name,
+        type: mcpConfig.type,
+        status: mcpStatus,
+        config: mcpConfig,
+      }
+    })
   }
 
   export async function clients() {
